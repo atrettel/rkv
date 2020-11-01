@@ -2,6 +2,7 @@
 
 # Copyright (C) 2020 Andrew Trettel
 
+import os.path
 import sqlite3
 import sys
 
@@ -97,12 +98,22 @@ def main( argc, argv ):
         print( "repository = {:s}".format( repository ) )
     elif ( argv[1] == "add" ):
         if ( argc < 4 ):
-            print( "rkv: need citatin key and document type" )
+            print( "rkv: need citation key and document type" )
             exit(1)
         else:
             add( database, argv[2], argv[3], argv[4:argc] )
     elif ( argv[1] == "init" ):
-        init( database )
+        if ( argc > 2 ):
+            for db in argv[2:argc]:
+                if ( os.path.isfile(db) ):
+                    print( "rkv: database {:s} already exists".format( db ) )
+                else:
+                    init( db )
+        else:
+            if ( os.path.isfile(database) ):
+                print( "rkv: database {:s} already exists".format( database ) )
+            else:
+                init( database )
     elif ( argv[1] == "info" ):
         print( "info" )
     elif ( argv[1] == "list" ):
