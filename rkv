@@ -103,17 +103,14 @@ def main( argc, argv ):
         else:
             add( database, argv[2], argv[3], argv[4:argc] )
     elif ( argv[1] == "init" ):
-        if ( argc > 2 ):
-            for db in argv[2:argc]:
-                if ( os.path.isfile(db) ):
-                    print( "rkv: database {:s} already exists".format( db ) )
-                else:
-                    init( db )
-        else:
-            if ( os.path.isfile(database) ):
-                print( "rkv: database {:s} already exists".format( database ) )
+        dbs = argv[2:argc]
+        if ( len(dbs) == 0 ):
+            dbs.append( database )
+        for db in dbs:
+            if ( os.path.isfile(db) ):
+                print( "rkv: database {:s} already exists".format( db ) )
             else:
-                init( database )
+                init( db )
     elif ( argv[1] == "info" ):
         print( "info" )
     elif ( argv[1] == "list" ):
