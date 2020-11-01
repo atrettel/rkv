@@ -11,7 +11,7 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
-def add( database, citation_key, document_type, field_pairs ):
+def add( database, citation_key, document_type, language, field_pairs ):
     if ( key_exists( database, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
             citation_key ) )
@@ -20,9 +20,10 @@ def add( database, citation_key, document_type, field_pairs ):
         c = conn.cursor()
         c.execute(
         """
-        INSERT INTO documents( citation_key, document_type ) VALUES( ?, ? );
+        INSERT INTO documents( citation_key, document_type, language ) VALUES(
+        ?, ?, ? );
         """,
-        ( citation_key, document_type, ) )
+        ( citation_key, document_type, language, ) )
         for field_pair in field_pairs:
             i = 0
             while field_pair[i] != ":":
@@ -49,6 +50,7 @@ def init( database ):
     CREATE TABLE documents (
     citation_key  TEXT PRIMARY KEY UNIQUE,
     document_type TEXT NOT NULL,
+    language      TEXT NOT NULL,
     notes         TEXT DEFAULT NULL
     );
     """
@@ -110,11 +112,11 @@ def main( argc, argv ):
         print( "pdfviewer  = {:s}".format( pdfviewer  ) )
         print( "repository = {:s}".format( repository ) )
     elif ( argv[1] == "add" ):
-        if ( argc < 4 ):
-            print( "rkv: need citation key and document type" )
+        if ( argc < 5 ):
+            print( "rkv: need citation key, document type, and language" )
             exit(1)
         else:
-            add( database, argv[2], argv[3], argv[4:argc] )
+            add( database, argv[2], argv[3], argv[4], argv[5:argc] )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "init" ):
