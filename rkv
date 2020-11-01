@@ -24,6 +24,14 @@ def add( database, citation_key, document_type, language, field_pairs ):
         ?, ?, ? );
         """,
         ( citation_key, document_type, language, ) )
+        conn.commit()
+        conn.close()
+        print( "rkv: add '{:s}'".format( citation_key ) )
+
+    if ( language not in list_languages_for_citation(
+         database, citation_key ) ):
+        conn = sqlite3.connect( database )
+        c = conn.cursor()
         for field_pair in field_pairs:
             i = 0
             n = len(field_pair)
@@ -43,7 +51,7 @@ def add( database, citation_key, document_type, language, field_pairs ):
             ( citation_key, field_type, language, value, ) )
         conn.commit()
         conn.close()
-        print( "rkv: add '{:s}'".format( citation_key ) )
+        print( "rkv: add fields for language '{:s}'".format( language ) )
 
 def init( database ):
     conn = sqlite3.connect( database )
@@ -102,6 +110,23 @@ def key_exists( database, citation_key ):
     conn.commit()
     conn.close()
     return ( result != None )
+
+def list_languages_for_citation( database, citation_key ):
+    conn = sqlite3.connect( database )
+    c = conn.cursor()
+    c.execute(
+    """
+    SELECT DISTINCT language FROM fields WHERE citation_key=? ORDER BY
+    language;
+    """,
+    ( citation_key, ) )
+    result = c.fetchone()
+    conn.commit()
+    conn.close()
+    if ( result == None ):
+        return []
+    else:
+        return list(result)
 
 def main( argc, argv ):
     database   = DEFAULT_DATABASE
