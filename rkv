@@ -26,10 +26,14 @@ def add( database, citation_key, document_type, language, field_pairs ):
         ( citation_key, document_type, language, ) )
         for field_pair in field_pairs:
             i = 0
-            while field_pair[i] != ":":
+            n = len(field_pair)
+            while ( i < n and field_pair[i] != ":" ):
                 i += 1
             field_type = field_pair[0:i]
-            value      = field_pair[i+1:]
+            if ( i == n ):
+                value = ""
+            else:
+                value = field_pair[i+1:]
 
             c.execute(
             """
