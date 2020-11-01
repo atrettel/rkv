@@ -11,7 +11,7 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
-def add( database, citation_key, document_type, language, field_pairs ):
+def add_citation( database, citation_key, document_type, language, field_pairs ):
     if ( key_exists( database, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
             citation_key ) )
@@ -53,7 +53,7 @@ def add( database, citation_key, document_type, language, field_pairs ):
         conn.close()
         print( "rkv: add fields for language '{:s}'".format( language ) )
 
-def init( database ):
+def init_database( database ):
     conn = sqlite3.connect( database )
     c = conn.cursor()
 
@@ -150,14 +150,14 @@ def main( argc, argv ):
                 print( "rkv: database {:s} already exists".format( db ) )
                 exit(1)
             else:
-                init( db )
+                init_database( db )
         exit(0)
 
     if ( os.path.isfile(database) == False ):
         print( "rkv: database '{:s}' does not exist".format( database ) )
         answer = input( "create it (yes or no)? " )
         if ( answer.lower() == "yes" ):
-            init( database )
+            init_database( database )
         else:
             exit(1)
 
@@ -166,7 +166,7 @@ def main( argc, argv ):
             print( "rkv: need citation key, document type, and language" )
             exit(1)
         else:
-            add( database, argv[2], argv[3], argv[4], argv[5:argc] )
+            add_citation( database, argv[2], argv[3], argv[4], argv[5:argc] )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "info" ):
