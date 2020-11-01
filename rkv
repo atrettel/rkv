@@ -111,14 +111,7 @@ def main( argc, argv ):
         print( "language   = {:s}".format( language   ) )
         print( "pdfviewer  = {:s}".format( pdfviewer  ) )
         print( "repository = {:s}".format( repository ) )
-    elif ( argv[1] == "add" ):
-        if ( argc < 5 ):
-            print( "rkv: need citation key, document type, and language" )
-            exit(1)
-        else:
-            add( database, argv[2], argv[3], argv[4], argv[5:argc] )
-    elif ( argv[1] == "find" ):
-        print( "find" )
+        exit(0)
     elif ( argv[1] == "init" ):
         dbs = argv[2:argc]
         if ( len(dbs) == 0 ):
@@ -126,8 +119,27 @@ def main( argc, argv ):
         for db in dbs:
             if ( os.path.isfile(db) ):
                 print( "rkv: database {:s} already exists".format( db ) )
+                exit(1)
             else:
                 init( db )
+        exit(0)
+
+    if ( os.path.isfile(database) == False ):
+        print( "rkv: database '{:s}' does not exist".format( database ) )
+        answer = input( "create it (yes or no)? " )
+        if ( answer.lower() == "yes" ):
+            init( database )
+        else:
+            exit(1)
+
+    if ( argv[1] == "add" ):
+        if ( argc < 5 ):
+            print( "rkv: need citation key, document type, and language" )
+            exit(1)
+        else:
+            add( database, argv[2], argv[3], argv[4], argv[5:argc] )
+    elif ( argv[1] == "find" ):
+        print( "find" )
     elif ( argv[1] == "info" ):
         print( "info" )
     elif ( argv[1] == "modify" ):
