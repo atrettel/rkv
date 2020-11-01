@@ -102,6 +102,8 @@ def main( argc, argv ):
             exit(1)
         else:
             add( database, argv[2], argv[3], argv[4:argc] )
+    elif ( argv[1] == "find" ):
+        print( "find" )
     elif ( argv[1] == "init" ):
         dbs = argv[2:argc]
         if ( len(dbs) == 0 ):
@@ -113,8 +115,6 @@ def main( argc, argv ):
                 init( db )
     elif ( argv[1] == "info" ):
         print( "info" )
-    elif ( argv[1] == "list" ):
-        print( "list" )
     elif ( argv[1] == "modify" ):
         print( "modify" )
     elif ( argv[1] == "mv" ):
