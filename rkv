@@ -10,6 +10,22 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
+def add( database, citation_key, document_type, fields ):
+    if ( key_exists( database, citation_key ) ):
+        print( "rkv: citation key '{:s}' already exists".format(
+            citation_key ) )
+    else:
+        conn = sqlite3.connect( database )
+        c = conn.cursor()
+        c.execute(
+        """
+        INSERT INTO documents( citation_key, document_type ) VALUES( ?, ? );
+        """,
+        ( citation_key, document_type, ) )
+        conn.commit()
+        conn.close()
+        print( "rkv: add '{:s}'".format( citation_key ) )
+
 def init( database ):
     conn = sqlite3.connect( database )
     c = conn.cursor()
@@ -17,9 +33,9 @@ def init( database ):
     c.execute(
     """
     CREATE TABLE documents (
-    citation_key TEXT PRIMARY KEY UNIQUE,
-    type         TEXT NOT NULL,
-    notes        TEXT DEFAULT NULL
+    citation_key  TEXT PRIMARY KEY UNIQUE,
+    document_type TEXT NOT NULL,
+    notes         TEXT DEFAULT NULL
     );
     """
     )
@@ -28,10 +44,10 @@ def init( database ):
     """
     CREATE TABLE fields (
     citation_key TEXT NOT NULL,
-    type         TEXT NOT NULL,
+    field_type   TEXT NOT NULL,
     language     TEXT NOT NULL,
     value        TEXT NOT NULL,
-    PRIMARY KEY(citation_key, type, language)
+    PRIMARY KEY(citation_key, field_type, language)
     );
     """
     )
@@ -40,16 +56,32 @@ def init( database ):
     """
     CREATE TABLE dates (
     citation_key TEXT NOT NULL,
-    type         TEXT DEFAULT NULL,
+    date_type    TEXT DEFAULT NULL,
     year         INTEGER NOT NULL,
     month        INTEGER DEFAULT NULL,
     day          INTEGER DEFAULT NULL,
-    PRIMARY KEY(citation_key, type)
+    PRIMARY KEY(citation_key, date_type)
     );
     """
     )
 
+    conn.commit()
+    conn.close()
+
     print( "rkv: initialized {:s}". format( database ) )
+
+def key_exists( database, citation_key ):
+    conn = sqlite3.connect( database )
+    c = conn.cursor()
+    c.execute(
+    """
+    SELECT citation_key FROM documents WHERE citation_key=?;
+    """,
+    ( citation_key, ) )
+    result = c.fetchone()
+    conn.commit()
+    conn.close()
+    return ( result != None )
 
 def main( argc, argv ):
     database   = DEFAULT_DATABASE
@@ -64,7 +96,11 @@ def main( argc, argv ):
         print( "pdfviewer  = {:s}".format( pdfviewer  ) )
         print( "repository = {:s}".format( repository ) )
     elif ( argv[1] == "add" ):
-        print( "add" )
+        if ( argc < 4 ):
+            print( "rkv: need citatin key and document type" )
+            exit(1)
+        else:
+            add( database, argv[2], argv[3], argv[4:argc] )
     elif ( argv[1] == "init" ):
         init( database )
     elif ( argv[1] == "info" ):
