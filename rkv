@@ -11,7 +11,7 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
-def add( database, citation_key, document_type, fields ):
+def add( database, citation_key, document_type, field_pairs ):
     if ( key_exists( database, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
             citation_key ) )
@@ -23,6 +23,19 @@ def add( database, citation_key, document_type, fields ):
         INSERT INTO documents( citation_key, document_type ) VALUES( ?, ? );
         """,
         ( citation_key, document_type, ) )
+        for field_pair in field_pairs:
+            i = 0
+            while field_pair[i] != ":":
+                i += 1
+            field_type = field_pair[0:i]
+            value      = field_pair[i+1:]
+
+            c.execute(
+            """
+            INSERT INTO fields( citation_key, field_type, language, value )
+            VALUES( ?, ?, ?, ? );
+            """,
+            ( citation_key, field_type, DEFAULT_LANGUAGE, value, ) )
         conn.commit()
         conn.close()
         print( "rkv: add '{:s}'".format( citation_key ) )
