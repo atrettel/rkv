@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2020 Andrew Trettel
+
+import sys
+
+DEFAULT_DATABASE   = "references.db"
+DEFAULT_LANGUAGE   = "eng"
+DEFAULT_PDFVIEWER  = "zathura"
+DEFAULT_REPOSITORY = "./"
+
+def main( argc, argv ):
+    database   = DEFAULT_DATABASE
+    language   = DEFAULT_LANGUAGE
+    pdfviewer  = DEFAULT_PDFVIEWER
+    repository = DEFAULT_REPOSITORY
+
+    if ( argc == 1 ):
+        print( "rkv: command-line reference manager" )
+        print( "database   = {:s}".format( database   ) )
+        print( "language   = {:s}".format( language   ) )
+        print( "pdfviewer  = {:s}".format( pdfviewer  ) )
+        print( "repository = {:s}".format( repository ) )
+    elif ( argv[1] == "add" ):
+        print( "add" )
+    elif ( argv[1] == "init" ):
+        print( "init" )
+    elif ( argv[1] == "info" ):
+        print( "info" )
+    elif ( argv[1] == "list" ):
+        print( "list" )
+    elif ( argv[1] == "modify" ):
+        print( "modify" )
+    elif ( argv[1] == "mv" ):
+        print( "mv" )
+    elif ( argv[1] == "rm" ):
+        print( "rm" )
+    else:
+        print( "rkv: command {:s} is unknown".format( argv[1] ) )
+
+    exit(0)
+
+if __name__ == "__main__":
+    main( len(sys.argv), sys.argv )
