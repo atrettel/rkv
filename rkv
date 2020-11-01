@@ -33,16 +33,7 @@ def add_citation( database, citation_key, document_type, language, field_pairs )
         conn = sqlite3.connect( database )
         c = conn.cursor()
         for field_pair in field_pairs:
-            i = 0
-            n = len(field_pair)
-            while ( i < n and field_pair[i] != ":" ):
-                i += 1
-            field_type = field_pair[0:i]
-            if ( i == n ):
-                value = ""
-            else:
-                value = field_pair[i+1:]
-
+            field_type, value = split_field_pair( field_pair )
             c.execute(
             """
             INSERT INTO fields( citation_key, field_type, language, value )
@@ -181,6 +172,19 @@ def main( argc, argv ):
         print( "rkv: command {:s} is unknown".format( argv[1] ) )
 
     exit(0)
+
+def split_field_pair( field_pair ):
+    i = 0
+    n = len(field_pair)
+    while ( i < n and field_pair[i] != ":" ):
+        i += 1
+    field_type = field_pair[0:i]
+    if ( i == n ):
+        value = ""
+    else:
+        value = field_pair[i+1:]
+
+    return field_type, value
 
 if __name__ == "__main__":
     main( len(sys.argv), sys.argv )
