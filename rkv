@@ -18,6 +18,7 @@ def add_citation( database, citation_key, document_type, language, field_pairs )
     else:
         conn = sqlite3.connect( database )
         c = conn.cursor()
+        c.execute( "PRAGMA foreign_keys = ON;" )
         c.execute(
         """
         INSERT INTO documents( citation_key, document_type, language ) VALUES(
@@ -34,6 +35,7 @@ def add_citation( database, citation_key, document_type, language, field_pairs )
         c = conn.cursor()
         for field_pair in field_pairs:
             field_type, value = split_field_pair( field_pair )
+            c.execute( "PRAGMA foreign_keys = ON;" )
             c.execute(
             """
             INSERT INTO fields( citation_key, field_type, language, value )
@@ -48,13 +50,30 @@ def init_database( database ):
     conn = sqlite3.connect( database )
     c = conn.cursor()
 
+    c.execute( "PRAGMA foreign_keys = ON;" )
+
+    c.execute(
+    """
+    CREATE TABLE document_types (
+    document_type  TEXT PRIMARY KEY UNIQUE,
+    RIS_type       TEXT NOT NULL,
+    bibtex_type    TEXT NOT NULL
+    );
+    """
+    )
+
+    c.execute( "INSERT INTO document_types VALUES( 'article', 'JOUR', 'article'    );" )
+    c.execute( "INSERT INTO document_types VALUES( 'book',    'BOOK', 'book'       );" )
+    c.execute( "INSERT INTO document_types VALUES( 'report',  'RPRT', 'techreport' );" )
+
     c.execute(
     """
     CREATE TABLE documents (
     citation_key  TEXT PRIMARY KEY UNIQUE,
     document_type TEXT NOT NULL,
     language      TEXT NOT NULL,
-    notes         TEXT DEFAULT NULL
+    notes         TEXT DEFAULT NULL,
+    FOREIGN KEY(document_type) REFERENCES document_types(document_type)
     );
     """
     )
