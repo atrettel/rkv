@@ -40,7 +40,7 @@ def add( database, citation_key, document_type, language, field_pairs ):
             INSERT INTO fields( citation_key, field_type, language, value )
             VALUES( ?, ?, ?, ? );
             """,
-            ( citation_key, field_type, DEFAULT_LANGUAGE, value, ) )
+            ( citation_key, field_type, language, value, ) )
         conn.commit()
         conn.close()
         print( "rkv: add '{:s}'".format( citation_key ) )
