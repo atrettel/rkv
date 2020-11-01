@@ -16,7 +16,6 @@ def add_citation( cursor, citation_key, document_type, language, field_pairs ):
         print( "rkv: citation key '{:s}' already exists".format(
             citation_key ) )
     else:
-        cursor.execute( "PRAGMA foreign_keys = ON;" )
         cursor.execute(
         """
         INSERT INTO documents( citation_key, document_type, language ) VALUES(
@@ -52,9 +51,22 @@ def init_database( database ):
     """
     )
 
-    cursor.execute( "INSERT INTO document_types VALUES( 'article', 'JOUR', 'article'    );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'book',    'BOOK', 'book'       );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'report',  'RPRT', 'techreport' );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'book',                   'BOOK',   'book'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'booklet',                'UNPB',   'booklet'       );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'chapter',                'CHAP',   'incollection'  );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'conference_paper',       'CPAPER', 'inproceedings' );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'conference_proceedings', 'CONF',   'proceedings'   );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'database',               'DATA',   'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'dictionary',             'DICT',   'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'journal',                'JFULL',  'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'journal_article',        'JOUR',   'article'       );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'masters_thesis',         'THES',   'mastersthesis' );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'patent',                 'PAT',    'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'phd_dissertation',       'THES',   'phdthesis'     );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'report',                 'RPRT',   'techreport'    );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'serial',                 'SER',    'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'standard',               'STAND',  'misc'          );" )
+    cursor.execute( "INSERT INTO document_types VALUES( 'unpublished',            'UNPB',   'unpublished'   );" )
 
     cursor.execute(
     """
