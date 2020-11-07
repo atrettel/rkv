@@ -24,4 +24,4 @@ Planned features
 
 -------------------------------------------------------------------------------
 
-Copyright © 2019-2020 Andrew Trettel
+Copyright © 2020 Andrew Trettel
