@@ -11,33 +11,56 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
-class document_type:
-    name        = None
-    RIS_type    = None
-    bibtex_type = None
+class multiple_type:
+    name               = None
+    RIS_type           = None
+    bibtex_type        = None
+    language_dependent = None
 
-    def __init__( self, name, RIS_type, bibtex_type ):
-        self.name        = str(name)
-        self.RIS_type    = str(RIS_type)
-        self.bibtex_type = str(bibtex_type)
+    def __init__( self, name, RIS_type, bibtex_type, language_dependent=True, ):
+        self.name               = str(name)
+        self.RIS_type           = RIS_type
+        self.bibtex_type        = bibtex_type
+        self.language_dependent = bool(language_dependent)
 
 DEFAULT_DOCUMENT_TYPES = {}
-DEFAULT_DOCUMENT_TYPES[ "BOOK"    ] = document_type( "book",                   "BOOK",   "book"          )
-DEFAULT_DOCUMENT_TYPES[ "BOOKLET" ] = document_type( "booklet",                "UNPB",   "booklet"       )
-DEFAULT_DOCUMENT_TYPES[ "CHAP"    ] = document_type( "chapter",                "CHAP",   "incollection"  )
-DEFAULT_DOCUMENT_TYPES[ "CPAPER"  ] = document_type( "conference paper",       "CPAPER", "inproceedings" )
-DEFAULT_DOCUMENT_TYPES[ "CONF"    ] = document_type( "conference proceedings", "CONF",   "proceedings"   )
-DEFAULT_DOCUMENT_TYPES[ "DATA"    ] = document_type( "database",               "DATA",   "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "DICT"    ] = document_type( "dictionary",             "DICT",   "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "JFULL"   ] = document_type( "journal",                "JFULL",  "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "JOUR"    ] = document_type( "journal article",        "JOUR",   "article"       )
-DEFAULT_DOCUMENT_TYPES[ "MTHES"   ] = document_type( "masters thesis",         "THES",   "mastersthesis" )
-DEFAULT_DOCUMENT_TYPES[ "PAT"     ] = document_type( "patent",                 "PAT",    "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "PTHES"   ] = document_type( "phd dissertation",       "THES",   "phdthesis"     )
-DEFAULT_DOCUMENT_TYPES[ "RPRT"    ] = document_type( "report",                 "RPRT",   "techreport"    )
-DEFAULT_DOCUMENT_TYPES[ "SER"     ] = document_type( "serial",                 "SER",    "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "STAND"   ] = document_type( "standard",               "STAND",  "misc"          )
-DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = document_type( "unpublished",            "UNPB",   "unpublished"   )
+DEFAULT_DOCUMENT_TYPES[ "BOOK"    ] = multiple_type( "book",                   "BOOK",   "book",          )
+DEFAULT_DOCUMENT_TYPES[ "BOOKLET" ] = multiple_type( "booklet",                "UNPB",   "booklet",       )
+DEFAULT_DOCUMENT_TYPES[ "CHAP"    ] = multiple_type( "chapter",                "CHAP",   "incollection",  )
+DEFAULT_DOCUMENT_TYPES[ "CPAPER"  ] = multiple_type( "conference paper",       "CPAPER", "inproceedings", )
+DEFAULT_DOCUMENT_TYPES[ "CONF"    ] = multiple_type( "conference proceedings", "CONF",   "proceedings",   )
+DEFAULT_DOCUMENT_TYPES[ "DATA"    ] = multiple_type( "database",               "DATA",   "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "DICT"    ] = multiple_type( "dictionary",             "DICT",   "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "JFULL"   ] = multiple_type( "journal",                "JFULL",  "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "JOUR"    ] = multiple_type( "journal article",        "JOUR",   "article",       )
+DEFAULT_DOCUMENT_TYPES[ "MTHES"   ] = multiple_type( "masters thesis",         "THES",   "mastersthesis", )
+DEFAULT_DOCUMENT_TYPES[ "PAT"     ] = multiple_type( "patent",                 "PAT",    "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "PTHES"   ] = multiple_type( "phd dissertation",       "THES",   "phdthesis",     )
+DEFAULT_DOCUMENT_TYPES[ "RPRT"    ] = multiple_type( "report",                 "RPRT",   "techreport",    )
+DEFAULT_DOCUMENT_TYPES[ "SER"     ] = multiple_type( "serial",                 "SER",    "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "STAND"   ] = multiple_type( "standard",               "STAND",  "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = multiple_type( "unpublished",            "UNPB",   "unpublished",   )
+
+DEFAULT_FIELD_TYPES = {}
+DEFAULT_FIELD_TYPES[ "abstract"    ] = multiple_type( "abstract",       "AB", "abstract",    language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "author"      ] = multiple_type( "author",         "AU", "author",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "booktitle"   ] = multiple_type( "book title",     "BT", "booktitle",   language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "chapter"     ] = multiple_type( "chapter number", None, "chapter",     language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "date"        ] = multiple_type( "date",           "DA", "date",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "doi"         ] = multiple_type( "DOI",            "DO", "doi",         language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "editor"      ] = multiple_type( "editor",         "ED", "editor",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "edition"     ] = multiple_type( "edition",        "ET", "edition",     language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "institution" ] = multiple_type( "institution",    None, "institution", language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "isbn"        ] = multiple_type( "ISBN",           "SN", "isbn",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "issn"        ] = multiple_type( "ISSN",           "SN", "isbn",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "issue"       ] = multiple_type( "issue number",   "IS", "issue",       language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "journal"     ] = multiple_type( "journal name",   "JO", "journal",     language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "publisher"   ] = multiple_type( "publisher",      "PB", "publisher",   language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "school"      ] = multiple_type( "school",         None, "school",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",          "TI", "title",       language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",            "UR", "url",         language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",  "VL", "volume",      language_dependent=False, )
+
 
 def add_citation( cursor, citation_key, document_type, language, field_pairs ):
     if ( key_exists( cursor, citation_key ) ):
@@ -96,6 +119,33 @@ def init_database( database ):
 
     cursor.execute(
     """
+    CREATE TABLE field_types (
+    field_type         TEXT PRIMARY KEY UNIQUE,
+    type_name          TEXT NOT NULL,
+    RIS_type           TEXT DEFAULT NULL,
+    bibtex_type        TEXT DEFAULT NULL,
+    language_dependent INTEGER NOT NULL DEFAULT 1
+    );
+    """
+    )
+
+    for field_type in DEFAULT_FIELD_TYPES:
+        cursor.execute(
+        """
+        INSERT INTO field_types
+        VALUES( ?, ?, ?, ?, ? );
+        """,
+        (
+            field_type,
+            DEFAULT_FIELD_TYPES[field_type].name,
+            DEFAULT_FIELD_TYPES[field_type].RIS_type,
+            DEFAULT_FIELD_TYPES[field_type].bibtex_type,
+            1 if DEFAULT_FIELD_TYPES[field_type].language_dependent else 0,
+        )
+        )
+
+    cursor.execute(
+    """
     CREATE TABLE documents (
     citation_key  TEXT PRIMARY KEY UNIQUE,
     document_type TEXT NOT NULL,
@@ -114,7 +164,8 @@ def init_database( database ):
     language     TEXT NOT NULL,
     value        TEXT NOT NULL,
     PRIMARY KEY(citation_key, field_type, language),
-    FOREIGN KEY(citation_key) REFERENCES documents(citation_key)
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
+    FOREIGN KEY(field_type) REFERENCES field_types(field_type)
     );
     """
     )
