@@ -11,6 +11,34 @@ DEFAULT_LANGUAGE   = "eng"
 DEFAULT_PDFVIEWER  = "zathura"
 DEFAULT_REPOSITORY = "./"
 
+class document_type:
+    name        = None
+    RIS_type    = None
+    bibtex_type = None
+
+    def __init__( self, name, RIS_type, bibtex_type ):
+        self.name        = str(name)
+        self.RIS_type    = str(RIS_type)
+        self.bibtex_type = str(bibtex_type)
+
+DEFAULT_DOCUMENT_TYPES = {}
+DEFAULT_DOCUMENT_TYPES[ "BOOK"    ] = document_type( "book",                   "BOOK",   "book"          )
+DEFAULT_DOCUMENT_TYPES[ "BOOKLET" ] = document_type( "booklet",                "UNPB",   "booklet"       )
+DEFAULT_DOCUMENT_TYPES[ "CHAP"    ] = document_type( "chapter",                "CHAP",   "incollection"  )
+DEFAULT_DOCUMENT_TYPES[ "CPAPER"  ] = document_type( "conference paper",       "CPAPER", "inproceedings" )
+DEFAULT_DOCUMENT_TYPES[ "CONF"    ] = document_type( "conference proceedings", "CONF",   "proceedings"   )
+DEFAULT_DOCUMENT_TYPES[ "DATA"    ] = document_type( "database",               "DATA",   "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "DICT"    ] = document_type( "dictionary",             "DICT",   "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "JFULL"   ] = document_type( "journal",                "JFULL",  "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "JOUR"    ] = document_type( "journal article",        "JOUR",   "article"       )
+DEFAULT_DOCUMENT_TYPES[ "MTHES"   ] = document_type( "masters thesis",         "THES",   "mastersthesis" )
+DEFAULT_DOCUMENT_TYPES[ "PAT"     ] = document_type( "patent",                 "PAT",    "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "PTHES"   ] = document_type( "phd dissertation",       "THES",   "phdthesis"     )
+DEFAULT_DOCUMENT_TYPES[ "RPRT"    ] = document_type( "report",                 "RPRT",   "techreport"    )
+DEFAULT_DOCUMENT_TYPES[ "SER"     ] = document_type( "serial",                 "SER",    "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "STAND"   ] = document_type( "standard",               "STAND",  "misc"          )
+DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = document_type( "unpublished",            "UNPB",   "unpublished"   )
+
 def add_citation( cursor, citation_key, document_type, language, field_pairs ):
     if ( key_exists( cursor, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
@@ -45,28 +73,26 @@ def init_database( database ):
     """
     CREATE TABLE document_types (
     document_type  TEXT PRIMARY KEY UNIQUE,
+    type_name      TEXT NOT NULL,
     RIS_type       TEXT NOT NULL,
     bibtex_type    TEXT NOT NULL
     );
     """
     )
 
-    cursor.execute( "INSERT INTO document_types VALUES( 'book',                   'BOOK',   'book'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'booklet',                'UNPB',   'booklet'       );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'chapter',                'CHAP',   'incollection'  );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'conference_paper',       'CPAPER', 'inproceedings' );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'conference_proceedings', 'CONF',   'proceedings'   );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'database',               'DATA',   'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'dictionary',             'DICT',   'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'journal',                'JFULL',  'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'journal_article',        'JOUR',   'article'       );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'masters_thesis',         'THES',   'mastersthesis' );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'patent',                 'PAT',    'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'phd_dissertation',       'THES',   'phdthesis'     );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'report',                 'RPRT',   'techreport'    );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'serial',                 'SER',    'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'standard',               'STAND',  'misc'          );" )
-    cursor.execute( "INSERT INTO document_types VALUES( 'unpublished',            'UNPB',   'unpublished'   );" )
+    for document_type in DEFAULT_DOCUMENT_TYPES:
+        cursor.execute(
+        """
+        INSERT INTO document_types
+        VALUES( ?, ?, ?, ? );
+        """,
+        (
+            document_type,
+            DEFAULT_DOCUMENT_TYPES[document_type].name,
+            DEFAULT_DOCUMENT_TYPES[document_type].RIS_type,
+            DEFAULT_DOCUMENT_TYPES[document_type].bibtex_type,
+        )
+        )
 
     cursor.execute(
     """
