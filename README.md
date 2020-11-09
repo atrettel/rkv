@@ -6,21 +6,22 @@ Planned features
 
 - Command-line interface (CLI), similar to Git or Taskwarrior.
 
-- SQLite backend.
+- SQLite backend.  It MUST be possible to perform searches on your own using
+  SQL queries.
 
-- Emphasis on LaTeX compatibility.  It should be possible to run the command
-  from a Makefile to generate a LaTeX bibliography file.
+- Emphasis on LaTeX compatibility.  It MUST be possible to run the command from
+  a Makefile to generate a LaTeX bibliography file.
 
-- Support for multiple languages.  Some fields should have different values
+- Support for multiple languages.  Some fields MAY have different values
   depending on the selected language (titles and abstracts especially).
 
-- Support for series and periodicals as additional document types.  Entries for
-  articles should reference their journal rather than specifying the
+- Support for series and periodicals as additional document types.  Relations
+  between different documents (citation keys) MUST be explicit.  For example,
+  entries for articles MUST reference their journal rather than specifying the
   information about the journal themselves.
 
-- Support for report series.  It should treat technical reports as items in a
-  series.  Include accession numbers and report codes organically in the
-  database.
+- Support for report series.  It MUST treat technical reports as items in a
+  series.  Accession numbers and report codes MUST be included in the database.
 
 -------------------------------------------------------------------------------
 
