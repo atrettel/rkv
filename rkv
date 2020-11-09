@@ -44,24 +44,26 @@ DEFAULT_DOCUMENT_TYPES[ "STAND"   ] = multiple_type( "standard",               "
 DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = multiple_type( "unpublished",            "UNPB",   "unpublished",   )
 
 DEFAULT_FIELD_TYPES = {}
-DEFAULT_FIELD_TYPES[ "abstract"    ] = multiple_type( "abstract",       "AB", "abstract",    language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "author"      ] = multiple_type( "author",         "AU", "author",      language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "booktitle"   ] = multiple_type( "book title",     "BT", "booktitle",   language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "chapter"     ] = multiple_type( "chapter number", None, "chapter",     language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "date"        ] = multiple_type( "date",           "DA", "date",        language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "doi"         ] = multiple_type( "DOI",            "DO", "doi",         language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "editor"      ] = multiple_type( "editor",         "ED", "editor",      language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "edition"     ] = multiple_type( "edition",        "ET", "edition",     language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "institution" ] = multiple_type( "institution",    None, "institution", language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "isbn"        ] = multiple_type( "ISBN",           "SN", "isbn",        language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "issn"        ] = multiple_type( "ISSN",           "SN", "isbn",        language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "issue"       ] = multiple_type( "issue number",   "IS", "issue",       language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "journal"     ] = multiple_type( "journal name",   "JO", "journal",     language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "publisher"   ] = multiple_type( "publisher",      "PB", "publisher",   language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "school"      ] = multiple_type( "school",         None, "school",      language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",          "TI", "title",       language_dependent=True,  )
-DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",            "UR", "url",         language_dependent=False, )
-DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",  "VL", "volume",      language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "abstract"    ] = multiple_type( "abstract",                           "AB", "abstract",    language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "author"      ] = multiple_type( "author",                             "AU", "author",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "booktitle"   ] = multiple_type( "book title",                         "BT", "booktitle",   language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "chapter"     ] = multiple_type( "chapter number",                     None, "chapter",     language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "date"        ] = multiple_type( "date",                               "DA", "date",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "doi"         ] = multiple_type( "DOI",                                "DO", "doi",         language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "edition"     ] = multiple_type( "edition",                            "ET", "edition",     language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "editor"      ] = multiple_type( "editor",                             "ED", "editor",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "institution" ] = multiple_type( "institution",                        None, "institution", language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "isbn"        ] = multiple_type( "ISBN",                               "SN", "isbn",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "issn"        ] = multiple_type( "ISSN",                               "SN", "isbn",        language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "issue"       ] = multiple_type( "issue number",                       "IS", "issue",       language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "journal"     ] = multiple_type( "journal name",                       "JO", "journal",     language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "lccn"        ] = multiple_type( "Library of Congress Control Number", None, None,          language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "oclc"        ] = multiple_type( "OCLC Control Number",                None, None,          language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "publisher"   ] = multiple_type( "publisher",                          "PB", "publisher",   language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "school"      ] = multiple_type( "school",                             None, "school",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",                              "TI", "title",       language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",                                "UR", "url",         language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",                      "VL", "volume",      language_dependent=False, )
 
 
 def add_citation( cursor, citation_key, document_type, language, field_pairs ):
@@ -107,6 +109,62 @@ def init_database( database ):
     cursor = conn.cursor()
 
     cursor.execute( "PRAGMA foreign_keys = ON;" )
+
+    # Consider some additional tables: authors/editors/etc. of documents, and
+    # individual people.  A single table for both could work for
+    # authors/editors/etc., provided a "linking" field like the ORCID iD is
+    # also there.
+
+    cursor.execute(
+    """
+    CREATE TABLE security_classification_levels (
+    identifier       TEXT PRIMARY KEY UNIQUE,
+    country          TEXT NOT NULL,
+    equivalent_level TEXT DEFAULT NULL,
+    name             TEXT NOT NULL
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE classification_systems (
+    identifier  TEXT PRIMARY KEY UNIQUE,
+    name        TEXT NOT NULL
+    );
+    """
+    )
+    # LCC, UDC
+
+    cursor.execute(
+    """
+    CREATE TABLE distribution_statements (
+    identifier  TEXT PRIMARY KEY UNIQUE,
+    name        TEXT NOT NULL
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE document_collections (
+    identifier  TEXT PRIMARY KEY UNIQUE,
+    name        TEXT NOT NULL
+    );
+    """
+    )
+
+    # Use to specify journal/article relations, etc.
+    cursor.execute(
+    """
+    CREATE TABLE document_relations (
+    citation_key1  TEXT NOT NULL,
+    citation_key2  TEXT NOT NULL,
+    relation       TEXT NOT NULL,
+    PRIMARY KEY( citation_key1, citation_key2, relation )
+    );
+    """
+    )
 
     cursor.execute(
     """
@@ -174,6 +232,20 @@ def init_database( database ):
 
     cursor.execute(
     """
+    CREATE TABLE dates (
+    citation_key TEXT NOT NULL,
+    date_type    TEXT DEFAULT NULL,
+    year         INTEGER NOT NULL,
+    month        INTEGER DEFAULT NULL,
+    day          INTEGER DEFAULT NULL,
+    PRIMARY KEY(citation_key, date_type),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key)
+    );
+    """
+    )
+
+    cursor.execute(
+    """
     CREATE TABLE fields (
     citation_key TEXT NOT NULL,
     field_type   TEXT NOT NULL,
@@ -188,14 +260,67 @@ def init_database( database ):
 
     cursor.execute(
     """
-    CREATE TABLE dates (
-    citation_key TEXT NOT NULL,
-    date_type    TEXT DEFAULT NULL,
-    year         INTEGER NOT NULL,
-    month        INTEGER DEFAULT NULL,
-    day          INTEGER DEFAULT NULL,
-    PRIMARY KEY(citation_key, date_type),
+    CREATE TABLE accession_numbers (
+    citation_key        TEXT NOT NULL,
+    document_collection TEXT NOT NULL,
+    accession_number    TEXT NOT NULL,
+    PRIMARY KEY(citation_key, document_collection, accession_number),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
+    FOREIGN KEY(document_collection) REFERENCES document_collections(identifier)
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE distribution_limitations (
+    citation_key           TEXT NOT NULL,
+    distribution_statement TEXT NOT NULL,
+    date                   TEXT NOT NULL,
+    authority              TEXT DEFAULT NULL,
+    changed                INTEGER NOT NULL DEFAULT 0 CHECK ( changed = 0 OR changed = 1 ),
+    PRIMARY KEY(citation_key, distribution_statement, date),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
+    FOREIGN KEY(distribution_statement) REFERENCES distribution_statements(identifier)
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE document_classifications (
+    citation_key          TEXT NOT NULL,
+    classification_system TEXT NOT NULL,
+    classification_code   TEXT NOT NULL,
+    PRIMARY KEY(citation_key, classification_system, classification_code),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
+    FOREIGN KEY(classification_system) REFERENCES classification_systems(identifier)
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE report_codes (
+    report_code           TEXT PRIMARY KEY,
+    citation_key          TEXT NOT NULL,
+    serial_key            TEXT DEFAULT NULL,
     FOREIGN KEY(citation_key) REFERENCES documents(citation_key)
+    );
+    """
+    )
+
+    cursor.execute(
+    """
+    CREATE TABLE security_classifications (
+    citation_key          TEXT NOT NULL,
+    classification_level  TEXT NOT NULL,
+    date                  TEXT NOT NULL,
+    authority             TEXT DEFAULT NULL,
+    changed               INTEGER NOT NULL DEFAULT 0 CHECK ( changed = 0 OR changed = 1 ),
+    PRIMARY KEY(citation_key, classification_level, date),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
+    FOREIGN KEY(classification_level) REFERENCES security_classification_levels(identifier)
     );
     """
     )
