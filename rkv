@@ -190,8 +190,25 @@ def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
     )
     print( "added field type '{:s}'".format( field_type ) )
 
-# TODO: check that this field is not used first.
 def remove_field_type( cursor, field_type ):
+    cursor.execute(
+    """
+    SELECT COUNT(*)
+    FROM fields
+    WHERE field_type=?;
+    """,
+    ( field_type, )
+    )
+    count = int(cursor.fetchone()[0])
+    cursor.execute(
+    """
+    DELETE FROM fields
+    WHERE field_type=?;
+    """,
+    ( field_type, )
+    )
+    print( "deleted {:d} fields".format( count ) )
+
     cursor.execute(
     """
     DELETE FROM field_types
