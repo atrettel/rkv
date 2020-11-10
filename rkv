@@ -173,6 +173,22 @@ def modify_fields( cursor, citation_key, options ):
             citation_key
         ) )
 
+def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
+                    language_dependent=False, ):
+    cursor.execute(
+    """
+    INSERT INTO field_types
+    VALUES( ?, ?, ?, ?, ? );
+    """,
+    (
+        field_type,
+        name,
+        RIS_type,
+        bibtex_type,
+        1 if language_dependent else 0,
+    )
+    )
+
 def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
     cursor.execute(
     """
@@ -289,18 +305,13 @@ def init_database( database ):
     )
 
     for field_type in DEFAULT_FIELD_TYPES:
-        cursor.execute(
-        """
-        INSERT INTO field_types
-        VALUES( ?, ?, ?, ?, ? );
-        """,
-        (
+        add_field_type(
+            cursor,
             field_type,
             DEFAULT_FIELD_TYPES[field_type].name,
             DEFAULT_FIELD_TYPES[field_type].RIS_type,
             DEFAULT_FIELD_TYPES[field_type].bibtex_type,
-            1 if DEFAULT_FIELD_TYPES[field_type].language_dependent else 0,
-        )
+            DEFAULT_FIELD_TYPES[field_type].language_dependent,
         )
 
     cursor.execute(
