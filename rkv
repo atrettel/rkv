@@ -67,19 +67,19 @@ DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",                    
 DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",                      "VL", "volume",      language_dependent=False, )
 
 def add_citation( cursor, citation_key, options, modify=False ):
+    document_type = DEFAULT_DOCUMENT_TYPE
+    if ( "type" in options ):
+        document_type = options["type"]
+
+    language = DEFAULT_LANGUAGE
+    if ( "language" in options ):
+        language = options["language"]
+
     if ( modify==False and key_exists( cursor, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
             citation_key
         ) )
     else:
-        document_type = DEFAULT_DOCUMENT_TYPE
-        if ( "type" in options ):
-            document_type = options["type"]
-
-        language = DEFAULT_LANGUAGE
-        if ( "language" in options ):
-            language = options["language"]
-
         cursor.execute(
         """
         INSERT INTO documents( citation_key, document_type, language )
@@ -88,21 +88,24 @@ def add_citation( cursor, citation_key, options, modify=False ):
         ( citation_key, document_type, language, ) )
         print( "rkv: add '{:s}'".format( citation_key ) )
 
-    #if ( language not in list_languages_for_citation( cursor, citation_key ) ):
-    #    for field_pair in field_pairs:
-    #        field_type, value = split_field_pair( field_pair )
-    #        cursor.execute(
-    #        """
-    #        INSERT INTO fields( citation_key, field_type, language, value )
-    #        VALUES( ?, ?, ?, ? );
-    #        """,
-    #        (
-    #            citation_key,
-    #            field_type,
-    #            language if field_type_depends_on_language( cursor, field_type ) else NO_LANGUAGE_CODE,
-    #            value,
-    #        ) )
-    #    print( "rkv: add fields for language '{:s}'".format( language ) )
+    sql_query = """
+    INSERT INTO fields( citation_key, field_type, language, value )
+    VALUES( ?, ?, ?, ? );
+    """
+    if ( modify ):
+        sql_query = """
+        UPDATE fields
+        WHERE citation_key=?, field_type=?, language=?
+        SET value=?;
+        """
+
+    ignored_fields = [ "key", "language", "type", ]
+    for field in options:
+        if ( field not in ignored_fields ):
+            cursor.execute(
+                sql_query,
+                ( citation_key, field, language, options[field], )
+            )
 
 def field_type_depends_on_language( cursor, field_type ):
     cursor.execute(
