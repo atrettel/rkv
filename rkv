@@ -201,6 +201,21 @@ def remove_field_type( cursor, field_type ):
     )
     print( "deleted field type '{:s}'".format( field_type ) )
 
+def print_field_types( cursor ):
+    cursor.execute(
+    """
+    SELECT field_type, type_name
+    FROM field_types
+    ORDER BY field_type;
+    """
+    )
+    results = cursor.fetchall()
+    for result in results:
+        print( "{:15s} - {:s}".format(
+            result[0],
+            result[1],
+        ) )
+
 def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
     cursor.execute(
     """
@@ -508,7 +523,7 @@ def main( argc, argv ):
         add_citation( cursor, argv[2], parse_options(argv[3:argc])  )
     elif ( argv[1] == "modify" ):
         modify_fields( cursor, argv[2], parse_options(argv[3:argc])  )
-    elif ( argv[1] == "field-types" ):
+    elif ( argv[1] == "fields" ):
         if ( argc > 3 ):
             if ( argv[2] == "add" ):
                 options = parse_options(argv[4:argc])
@@ -538,7 +553,7 @@ def main( argc, argv ):
             else:
                 print( "command field-types '{:s}' is unknown".format( argv[2] ) )
         else:
-            print( "list all field types" )
+            print_field_types( cursor )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "list" ):
