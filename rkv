@@ -6,10 +6,11 @@ import os.path
 import sqlite3
 import sys
 
-DEFAULT_DATABASE   = "references.db"
-DEFAULT_LANGUAGE   = "eng"
-DEFAULT_PDFVIEWER  = "zathura"
-DEFAULT_REPOSITORY = "./"
+DEFAULT_DATABASE      = "references.db"
+DEFAULT_LANGUAGE      = "eng"
+DEFAULT_PDFVIEWER     = "zathura"
+DEFAULT_REPOSITORY    = "./"
+DEFAULT_DOCUMENT_TYPE = "BOOK"
 
 NO_LANGUAGE_CODE = "zxx"
 
@@ -65,35 +66,43 @@ DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",                  
 DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",                                "UR", "url",         language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",                      "VL", "volume",      language_dependent=False, )
 
-
-def add_citation( cursor, citation_key, document_type, language, field_pairs ):
-    if ( key_exists( cursor, citation_key ) ):
+def add_citation( cursor, citation_key, options, modify=False ):
+    if ( modify==False and key_exists( cursor, citation_key ) ):
         print( "rkv: citation key '{:s}' already exists".format(
-            citation_key ) )
+            citation_key
+        ) )
     else:
+        document_type = DEFAULT_DOCUMENT_TYPE
+        if ( "type" in options ):
+            document_type = options["type"]
+
+        language = DEFAULT_LANGUAGE
+        if ( "language" in options ):
+            language = options["language"]
+
         cursor.execute(
         """
-        INSERT INTO documents( citation_key, document_type, language ) VALUES(
-        ?, ?, ? );
+        INSERT INTO documents( citation_key, document_type, language )
+        VALUES( ?, ?, ? );
         """,
         ( citation_key, document_type, language, ) )
         print( "rkv: add '{:s}'".format( citation_key ) )
 
-    if ( language not in list_languages_for_citation( cursor, citation_key ) ):
-        for field_pair in field_pairs:
-            field_type, value = split_field_pair( field_pair )
-            cursor.execute(
-            """
-            INSERT INTO fields( citation_key, field_type, language, value )
-            VALUES( ?, ?, ?, ? );
-            """,
-            (
-                citation_key,
-                field_type,
-                language if field_type_depends_on_language( cursor, field_type ) else NO_LANGUAGE_CODE,
-                value,
-            ) )
-        print( "rkv: add fields for language '{:s}'".format( language ) )
+    #if ( language not in list_languages_for_citation( cursor, citation_key ) ):
+    #    for field_pair in field_pairs:
+    #        field_type, value = split_field_pair( field_pair )
+    #        cursor.execute(
+    #        """
+    #        INSERT INTO fields( citation_key, field_type, language, value )
+    #        VALUES( ?, ?, ?, ? );
+    #        """,
+    #        (
+    #            citation_key,
+    #            field_type,
+    #            language if field_type_depends_on_language( cursor, field_type ) else NO_LANGUAGE_CODE,
+    #            value,
+    #        ) )
+    #    print( "rkv: add fields for language '{:s}'".format( language ) )
 
 def field_type_depends_on_language( cursor, field_type ):
     cursor.execute(
@@ -382,19 +391,13 @@ def main( argc, argv ):
     cursor.execute( "PRAGMA foreign_keys = ON;" )
 
     if ( argv[1] == "add" ):
-        if ( argc < 5 ):
-            print( "rkv: need citation key, document type, and language" )
-            conn.commit()
-            conn.close()
-            exit(1)
-        else:
-            add_citation( cursor, argv[2], argv[3], argv[4], argv[5:argc] )
+        add_citation( cursor, argv[2], parse_options(argv[3:argc]), modify=False, )
+    elif ( argv[1] == "modify" ):
+        add_citation( cursor, argv[2], parse_options(argv[3:argc]), modify=True, )
     elif ( argv[1] == "find" ):
         print( "find" )
-    elif ( argv[1] == "info" ):
+    elif ( argv[1] == "list" ):
         print( "info" )
-    elif ( argv[1] == "modify" ):
-        print( "modify" )
     elif ( argv[1] == "mv" ):
         print( "mv" )
     elif ( argv[1] == "rm" ):
@@ -406,18 +409,20 @@ def main( argc, argv ):
     conn.close()
     exit(0)
 
-def split_field_pair( field_pair ):
-    i = 0
-    n = len(field_pair)
-    while ( i < n and field_pair[i] != ":" ):
-        i += 1
-    field_type = field_pair[0:i]
-    if ( i == n ):
-        value = ""
-    else:
-        value = field_pair[i+1:]
-
-    return field_type, value
+def parse_options( arguments ):
+    options = {}
+    for argument in arguments:
+        i = 0
+        n = len(argument)
+        while ( i < n and argument[i] != ":" ):
+            i += 1
+        if ( i == n ):
+            options[argument] = None
+        elif ( i+1 == n ):
+            options[argument[0:n-1]] = None
+        else:
+            options[argument[0:i]] = argument[i+1:]
+    return options
 
 if __name__ == "__main__":
     main( len(sys.argv), sys.argv )
