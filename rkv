@@ -198,11 +198,6 @@ def init_database( database ):
 
     cursor.execute( "PRAGMA foreign_keys = ON;" )
 
-    # Consider some additional tables: authors/editors/etc. of documents, and
-    # individual people.  A single table for both could work for
-    # authors/editors/etc., provided a "linking" field like the ORCID iD is
-    # also there.
-
     cursor.execute(
     """
     CREATE TABLE security_classification_levels (
@@ -243,6 +238,8 @@ def init_database( database ):
     )
 
     # Use to specify journal/article relations, etc.
+    #
+    # Relations = part of, translation of, ...
     cursor.execute(
     """
     CREATE TABLE document_relations (
@@ -342,6 +339,22 @@ def init_database( database ):
     PRIMARY KEY(citation_key, field_type, language),
     FOREIGN KEY(citation_key) REFERENCES documents(citation_key),
     FOREIGN KEY(field_type) REFERENCES field_types(field_type)
+    );
+    """
+    )
+
+    # Roles = author, editor, translator, ...
+    cursor.execute(
+    """
+    CREATE TABLE people (
+    citation_key     TEXT NOT NULL,
+    role             TEXT NOT NULL,
+    list_order       INTEGER DEFAULT NULL CHECK ( list_order > 0 ),
+    name             TEXT NOT NULL,
+    correspondent    INTEGER NOT NULL DEFAULT 0 CHECK ( correspondent = 0 OR correspondent = 1 ),
+    orcid            TEXT DFEAULT NULL,
+    PRIMARY KEY(citation_key, role, list_order),
+    FOREIGN KEY(citation_key) REFERENCES documents(citation_key)
     );
     """
     )
