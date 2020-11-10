@@ -173,6 +173,21 @@ def modify_fields( cursor, citation_key, options ):
             citation_key
         ) )
 
+def add_document_type( cursor, document_type, name, RIS_type, bibtex_type ):
+    cursor.execute(
+    """
+    INSERT INTO document_types
+    VALUES( ?, ?, ?, ? );
+    """,
+    (
+        document_type,
+        name,
+        RIS_type,
+        bibtex_type,
+    )
+    )
+    print( "added document type '{:s}'".format( document_type ) )
+
 def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
                     language_dependent=False, ):
     cursor.execute(
@@ -323,17 +338,12 @@ def init_database( database ):
     )
 
     for document_type in DEFAULT_DOCUMENT_TYPES:
-        cursor.execute(
-        """
-        INSERT INTO document_types
-        VALUES( ?, ?, ?, ? );
-        """,
-        (
+        add_document_type(
+            cursor,
             document_type,
             DEFAULT_DOCUMENT_TYPES[document_type].name,
             DEFAULT_DOCUMENT_TYPES[document_type].RIS_type,
             DEFAULT_DOCUMENT_TYPES[document_type].bibtex_type,
-        )
         )
 
     cursor.execute(
