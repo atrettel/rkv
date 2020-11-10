@@ -10,7 +10,7 @@ DEFAULT_DATABASE      = "references.db"
 DEFAULT_LANGUAGE      = "eng"
 DEFAULT_PDFVIEWER     = "zathura"
 DEFAULT_REPOSITORY    = "./"
-DEFAULT_DOCUMENT_TYPE = "BOOK"
+DEFAULT_DOCUMENT_TYPE = "DOC"
 
 NO_LANGUAGE_CODE = "zxx"
 
@@ -30,19 +30,20 @@ DEFAULT_DOCUMENT_TYPES = {}
 DEFAULT_DOCUMENT_TYPES[ "BOOK"    ] = multiple_type( "book",                   "BOOK",   "book",          )
 DEFAULT_DOCUMENT_TYPES[ "BOOKLET" ] = multiple_type( "booklet",                "UNPB",   "booklet",       )
 DEFAULT_DOCUMENT_TYPES[ "CHAP"    ] = multiple_type( "chapter",                "CHAP",   "incollection",  )
-DEFAULT_DOCUMENT_TYPES[ "CPAPER"  ] = multiple_type( "conference paper",       "CPAPER", "inproceedings", )
 DEFAULT_DOCUMENT_TYPES[ "CONF"    ] = multiple_type( "conference proceedings", "CONF",   "proceedings",   )
+DEFAULT_DOCUMENT_TYPES[ "CPAPER"  ] = multiple_type( "conference paper",       "CPAPER", "inproceedings", )
 DEFAULT_DOCUMENT_TYPES[ "DATA"    ] = multiple_type( "database",               "DATA",   "misc",          )
 DEFAULT_DOCUMENT_TYPES[ "DICT"    ] = multiple_type( "dictionary",             "DICT",   "misc",          )
+DEFAULT_DOCUMENT_TYPES[ "DOC"     ] = multiple_type( "document",               "GEN",    "misc",          )
 DEFAULT_DOCUMENT_TYPES[ "JFULL"   ] = multiple_type( "journal",                "JFULL",  "misc",          )
 DEFAULT_DOCUMENT_TYPES[ "JOUR"    ] = multiple_type( "journal article",        "JOUR",   "article",       )
-DEFAULT_DOCUMENT_TYPES[ "MTHES"   ] = multiple_type( "masters thesis",         "THES",   "mastersthesis", )
+DEFAULT_DOCUMENT_TYPES[ "MTHES"   ] = multiple_type( "master's thesis",        "THES",   "mastersthesis", )
 DEFAULT_DOCUMENT_TYPES[ "PAT"     ] = multiple_type( "patent",                 "PAT",    "misc",          )
-DEFAULT_DOCUMENT_TYPES[ "PTHES"   ] = multiple_type( "phd dissertation",       "THES",   "phdthesis",     )
+DEFAULT_DOCUMENT_TYPES[ "PTHES"   ] = multiple_type( "doctoral dissertation",  "THES",   "phdthesis",     )
 DEFAULT_DOCUMENT_TYPES[ "RPRT"    ] = multiple_type( "report",                 "RPRT",   "techreport",    )
 DEFAULT_DOCUMENT_TYPES[ "SER"     ] = multiple_type( "serial",                 "SER",    "misc",          )
 DEFAULT_DOCUMENT_TYPES[ "STAND"   ] = multiple_type( "standard",               "STAND",  "misc",          )
-DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = multiple_type( "unpublished",            "UNPB",   "unpublished",   )
+DEFAULT_DOCUMENT_TYPES[ "UNPB"    ] = multiple_type( "unpublished document",   "UNPB",   "unpublished",   )
 
 DEFAULT_FIELD_TYPES = {}
 DEFAULT_FIELD_TYPES[ "abstract"    ] = multiple_type( "abstract",                           "AB", "abstract",    language_dependent=True,  )
@@ -187,6 +188,24 @@ def add_document_type( cursor, document_type, name, RIS_type, bibtex_type ):
     )
     )
     print( "added document type '{:s}'".format( document_type ) )
+
+# I should not write remove_document_type until I have a method to remove
+# documents, since it would require removing many documents.
+
+def print_document_types( cursor ):
+    cursor.execute(
+    """
+    SELECT document_type, type_name
+    FROM document_types
+    ORDER BY document_type;
+    """
+    )
+    results = cursor.fetchall()
+    for result in results:
+        print( "{:15s} - {:s}".format(
+            result[0],
+            result[1],
+        ) )
 
 def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
                     language_dependent=False, ):
@@ -555,7 +574,7 @@ def main( argc, argv ):
             if ( argv[2] == "add" ):
                 options = parse_options(argv[4:argc])
                 field_type = argv[3]
-                name = None
+                name = field_type
                 if ( "name" in options ):
                     name = options["name"]
                 RIS_type = None
@@ -578,9 +597,34 @@ def main( argc, argv ):
             elif ( argv[2] == "rm" ):
                 remove_field_type( cursor, argv[3] )
             else:
-                print( "command field-types '{:s}' is unknown".format( argv[2] ) )
+                print( "command field '{:s}' is unknown".format( argv[2] ) )
         else:
             print_field_types( cursor )
+    elif ( argv[1] == "types" ):
+        if ( argc > 3 ):
+            if ( argv[2] == "add" ):
+                options = parse_options(argv[4:argc])
+                document_type = argv[3]
+                name = document_type
+                if ( "name" in options ):
+                    name = options["name"]
+                RIS_type = "GEN"
+                if ( "ris-type" in options ):
+                    RIS_type = options["ris-type"]
+                bibtex_type = "misc"
+                if ( "bibtex_type" in options ):
+                    bibtex_type = options["bibtex-type"]
+                add_document_type(
+                    cursor,
+                    document_type,
+                    name,
+                    RIS_type,
+                    bibtex_type,
+                )
+            else:
+                print( "command type '{:s}' is unknown".format( argv[2] ) )
+        else:
+            print_document_types( cursor )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "list" ):
