@@ -188,6 +188,18 @@ def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
         1 if language_dependent else 0,
     )
     )
+    print( "added field type '{:s}'".format( field_type ) )
+
+# TODO: check that this field is not used first.
+def remove_field_type( cursor, field_type ):
+    cursor.execute(
+    """
+    DELETE FROM field_types
+    WHERE field_type=?;
+    """,
+    ( field_type, )
+    )
+    print( "deleted field type '{:s}'".format( field_type ) )
 
 def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
     cursor.execute(
@@ -440,7 +452,7 @@ def init_database( database ):
     conn.commit()
     conn.close()
 
-    print( "rkv: initialized {:s}". format( database ) )
+    print( "initialized {:s}". format( database ) )
 
 def key_exists( cursor, citation_key ):
     cursor.execute(
@@ -481,9 +493,8 @@ def main( argc, argv ):
         db = database
         if ( argc > 2 ):
             db = argv[2]
-        print( db )
         if ( os.path.isfile(db) ):
-            print( "rkv: database {:s} already exists".format( db ) )
+            print( "database {:s} already exists".format( db ) )
             exit(1)
         else:
             init_database( db )
@@ -497,6 +508,37 @@ def main( argc, argv ):
         add_citation( cursor, argv[2], parse_options(argv[3:argc])  )
     elif ( argv[1] == "modify" ):
         modify_fields( cursor, argv[2], parse_options(argv[3:argc])  )
+    elif ( argv[1] == "field-types" ):
+        if ( argc > 3 ):
+            if ( argv[2] == "add" ):
+                options = parse_options(argv[4:argc])
+                field_type = argv[3]
+                name = None
+                if ( "name" in options ):
+                    name = options["name"]
+                RIS_type = None
+                if ( "ris-type" in options ):
+                    RIS_type = options["ris-type"]
+                bibtex_type = None
+                if ( "bibtex_type" in options ):
+                    bibtex_type = options["bibtex-type"]
+                language_dependent = False
+                if ( "language-dependent" in options ):
+                    language_dependent = options["language-dependent"]
+                add_field_type(
+                    cursor,
+                    field_type,
+                    name,
+                    RIS_type,
+                    bibtex_type,
+                    language_dependent,
+                )
+            elif ( argv[2] == "rm" ):
+                remove_field_type( cursor, argv[3] )
+            else:
+                print( "command field-types '{:s}' is unknown".format( argv[2] ) )
+        else:
+            print( "list all field types" )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "list" ):
@@ -506,7 +548,7 @@ def main( argc, argv ):
     elif ( argv[1] == "rm" ):
         print( "rm" )
     else:
-        print( "command {:s} is unknown".format( argv[1] ) )
+        print( "command '{:s}' is unknown".format( argv[1] ) )
 
     conn.commit()
     conn.close()
