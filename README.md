@@ -37,6 +37,8 @@ Planned commands
     - List basic information, one entry per line, on all documents that match
       the arguments.
 
+    - If only a single argument is given, it is treated as the citation key.
+
 - `rkv list CITATION_KEY [LANG_CODE]`
 
     - List full information on a document.  If the language code is
@@ -46,19 +48,19 @@ Planned commands
       satisfy it, list all of them on a single line each, akin to the `rkv
       find` command.
 
-- `rkv add CITATION_KEY DOC_TYPE [LANG_CODE] -- option1:"field1" ...`
+- `rkv add CITATION_KEY [type:DOC_TYPE] [language:LANG_CODE] [option1:"field1"]
+  ...`
 
-    - Add information to the database about a particular document.  If the
-      language code is unspecified, use the default language.  If the language
-      code is specified and differs from the previously entered language for
-      the document, this command adds fields in that language in addition to
-      the previous fields in the previous language.
+    - Add information to the database about a particular document.  Any
+      additional options past the document type and language are parsed using
+      the `modify` commands.  If the document type or language codes are
+      unspecified, it uses the defaults.
 
-- `rkv modify CITATION_KEY [LANG_CODE] -- option1:"field1" ...`
+- `rkv modify CITATION_KEY [language:LANG_CODE] [option1:"field1"] ...`
 
-    - Modify existing information on a document.
-
-    - Use the same method as `rkv add` but with a different SQL query.
+    - Modify existing information on a document.  Specifying a language code
+      other than the one used to add the document adds additional fields in
+      that language to the database.
 
 - `rkv rm CITATION KEY`
 
