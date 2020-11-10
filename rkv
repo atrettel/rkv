@@ -66,7 +66,7 @@ DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",                  
 DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",                                "UR", "url",         language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",                      "VL", "volume",      language_dependent=False, )
 
-def add_citation( cursor, citation_key, options, modify=False ):
+def add_citation( cursor, citation_key, options ):
     document_type = DEFAULT_DOCUMENT_TYPE
     if ( "type" in options ):
         document_type = options["type"]
@@ -75,8 +75,8 @@ def add_citation( cursor, citation_key, options, modify=False ):
     if ( "language" in options ):
         language = options["language"]
 
-    if ( modify==False and key_exists( cursor, citation_key ) ):
-        print( "rkv: citation key '{:s}' already exists".format(
+    if ( key_exists( cursor, citation_key ) ):
+        print( "citation key '{:s}' already exists".format(
             citation_key
         ) )
     else:
@@ -86,26 +86,63 @@ def add_citation( cursor, citation_key, options, modify=False ):
         VALUES( ?, ?, ? );
         """,
         ( citation_key, document_type, language, ) )
-        print( "rkv: add '{:s}'".format( citation_key ) )
+        print( "add '{:s}' to documents table".format( citation_key ) )
 
-    sql_query = """
-    INSERT INTO fields( citation_key, field_type, language, value )
-    VALUES( ?, ?, ?, ? );
-    """
-    if ( modify ):
-        sql_query = """
-        UPDATE fields
-        WHERE citation_key=?, field_type=?, language=?
-        SET value=?;
-        """
 
     ignored_fields = [ "key", "language", "type", ]
-    for field in options:
-        if ( field not in ignored_fields ):
-            cursor.execute(
-                sql_query,
-                ( citation_key, field, language, options[field], )
-            )
+    for field_type in options:
+        if ( field_type not in ignored_fields ):
+            field_language = NO_LANGUAGE_CODE
+            if ( field_type_depends_on_language( cursor, field_type ) ):
+                field_language = language
+
+            if ( citation_key_contains_field_type( cursor, citation_key, field_type, field_language, ) ):
+                cursor.execute(
+                """
+                UPDATE fields
+                SET value=?
+                WHERE citation_key=? AND field_type=? AND language=?;
+                """,
+                (
+                    options[field_type],
+                    citation_key,
+                    field_type,
+                    field_language,
+                )
+                )
+                print( "modified '{:s}' of '{:s}'".format(
+                    field_type,
+                    citation_key
+                ) )
+            else:
+                sql_query = """
+                """
+                cursor.execute(
+                """
+                INSERT INTO fields( citation_key, field_type, language, value )
+                VALUES( ?, ?, ?, ? );
+                """,
+                (
+                    citation_key,
+                    field_type,
+                    field_language,
+                    options[field_type],
+                )
+                )
+                print( "added '{:s}' of '{:s}'".format(
+                    field_type,
+                    citation_key
+                ) )
+
+def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
+    cursor.execute(
+    """
+    SELECT COUNT(*) FROM fields
+    WHERE citation_key=? and field_type=? and language=?;
+    """,
+    ( citation_key, field_type, language, ) )
+    result = cursor.fetchone()
+    return ( int(result[0]) == 1 )
 
 def field_type_depends_on_language( cursor, field_type ):
     cursor.execute(
@@ -394,9 +431,7 @@ def main( argc, argv ):
     cursor.execute( "PRAGMA foreign_keys = ON;" )
 
     if ( argv[1] == "add" ):
-        add_citation( cursor, argv[2], parse_options(argv[3:argc]), modify=False, )
-    elif ( argv[1] == "modify" ):
-        add_citation( cursor, argv[2], parse_options(argv[3:argc]), modify=True, )
+        add_citation( cursor, argv[2], parse_options(argv[3:argc])  )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "list" ):
