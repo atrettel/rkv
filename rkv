@@ -53,6 +53,7 @@ DEFAULT_FIELD_TYPES[ "date"        ] = multiple_type( "date",                   
 DEFAULT_FIELD_TYPES[ "doi"         ] = multiple_type( "DOI",                                "DO", "doi",         language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "edition"     ] = multiple_type( "edition",                            "ET", "edition",     language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "editor"      ] = multiple_type( "editor",                             "ED", "editor",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "endpage"     ] = multiple_type( "end page",                           "EP", None,          language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "institution" ] = multiple_type( "institution",                        None, "institution", language_dependent=True,  )
 DEFAULT_FIELD_TYPES[ "isbn"        ] = multiple_type( "ISBN",                               "SN", "isbn",        language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "issn"        ] = multiple_type( "ISSN",                               "SN", "isbn",        language_dependent=False, )
@@ -60,8 +61,10 @@ DEFAULT_FIELD_TYPES[ "issue"       ] = multiple_type( "issue number",           
 DEFAULT_FIELD_TYPES[ "journal"     ] = multiple_type( "journal name",                       "JO", "journal",     language_dependent=True,  )
 DEFAULT_FIELD_TYPES[ "lccn"        ] = multiple_type( "Library of Congress Control Number", None, None,          language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "oclc"        ] = multiple_type( "OCLC Control Number",                None, None,          language_dependent=False, )
+DEFAULT_FIELD_TYPES[ "pages"       ] = multiple_type( "pages",                              None, "pages",       language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "publisher"   ] = multiple_type( "publisher",                          "PB", "publisher",   language_dependent=True,  )
 DEFAULT_FIELD_TYPES[ "school"      ] = multiple_type( "school",                             None, "school",      language_dependent=True,  )
+DEFAULT_FIELD_TYPES[ "startpage"   ] = multiple_type( "start page",                         "SP", None,          language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "title"       ] = multiple_type( "title",                              "TI", "title",       language_dependent=True,  )
 DEFAULT_FIELD_TYPES[ "url"         ] = multiple_type( "URL",                                "UR", "url",         language_dependent=False, )
 DEFAULT_FIELD_TYPES[ "volume"      ] = multiple_type( "volume number",                      "VL", "volume",      language_dependent=False, )
@@ -86,53 +89,89 @@ def add_citation( cursor, citation_key, options ):
         VALUES( ?, ?, ? );
         """,
         ( citation_key, document_type, language, ) )
-        print( "add '{:s}' to documents table".format( citation_key ) )
+        print( "added '{:s}' to documents table".format( citation_key ) )
 
+    modify_fields( cursor, citation_key, options )
 
-    ignored_fields = [ "key", "language", "type", ]
-    for field_type in options:
-        if ( field_type not in ignored_fields ):
-            field_language = NO_LANGUAGE_CODE
-            if ( field_type_depends_on_language( cursor, field_type ) ):
-                field_language = language
+def modify_fields( cursor, citation_key, options ):
+    if ( bool(options) == False ):
+        print( "no options given" )
 
-            if ( citation_key_contains_field_type( cursor, citation_key, field_type, field_language, ) ):
-                cursor.execute(
-                """
-                UPDATE fields
-                SET value=?
-                WHERE citation_key=? AND field_type=? AND language=?;
-                """,
-                (
-                    options[field_type],
-                    citation_key,
-                    field_type,
-                    field_language,
-                )
-                )
-                print( "modified '{:s}' of '{:s}'".format(
-                    field_type,
-                    citation_key
-                ) )
-            else:
-                sql_query = """
-                """
-                cursor.execute(
-                """
-                INSERT INTO fields( citation_key, field_type, language, value )
-                VALUES( ?, ?, ?, ? );
-                """,
-                (
-                    citation_key,
-                    field_type,
-                    field_language,
-                    options[field_type],
-                )
-                )
-                print( "added '{:s}' of '{:s}'".format(
-                    field_type,
-                    citation_key
-                ) )
+    document_type = DEFAULT_DOCUMENT_TYPE
+    if ( "type" in options ):
+        document_type = options["type"]
+
+    language = DEFAULT_LANGUAGE
+    if ( "language" in options ):
+        language = options["language"]
+
+    if ( key_exists( cursor, citation_key ) ):
+        ignored_fields = [ "key", "language", "type", ]
+        for field_type in options:
+            if ( field_type not in ignored_fields ):
+                field_language = NO_LANGUAGE_CODE
+                if ( field_type_depends_on_language( cursor, field_type ) ):
+                    field_language = language
+
+                if ( citation_key_contains_field_type( cursor, citation_key, field_type, field_language, ) ):
+                    if ( options[field_type] != None ):
+                        cursor.execute(
+                        """
+                        DELETE FROM fields
+                        WHERE citation_key=? AND field_type=? AND language=?;
+                        """,
+                        (
+                            citation_key,
+                            field_type,
+                            field_language,
+                        )
+                        )
+                        print( "deleted '{:s}' of '{:s}'".format(
+                            field_type,
+                            citation_key
+                        ) )
+                    else:
+                        cursor.execute(
+                        """
+                        UPDATE fields
+                        SET value=?
+                        WHERE citation_key=? AND field_type=? AND language=?;
+                        """,
+                        (
+                            options[field_type],
+                            citation_key,
+                            field_type,
+                            field_language,
+                        )
+                        )
+                        print( "updated '{:s}' of '{:s}'".format(
+                            field_type,
+                            citation_key
+                        ) )
+                else:
+                    if ( options[field_type] != None ):
+                        sql_query = """
+                        """
+                        cursor.execute(
+                        """
+                        INSERT INTO fields( citation_key, field_type, language, value )
+                        VALUES( ?, ?, ?, ? );
+                        """,
+                        (
+                            citation_key,
+                            field_type,
+                            field_language,
+                            options[field_type],
+                        )
+                        )
+                        print( "inserted '{:s}' of '{:s}'".format(
+                            field_type,
+                            citation_key
+                        ) )
+    else:
+        print( "citation key '{:s}' does not exist".format(
+            citation_key
+        ) )
 
 def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
     cursor.execute(
@@ -432,6 +471,8 @@ def main( argc, argv ):
 
     if ( argv[1] == "add" ):
         add_citation( cursor, argv[2], parse_options(argv[3:argc])  )
+    elif ( argv[1] == "modify" ):
+        modify_fields( cursor, argv[2], parse_options(argv[3:argc])  )
     elif ( argv[1] == "find" ):
         print( "find" )
     elif ( argv[1] == "list" ):
@@ -441,7 +482,7 @@ def main( argc, argv ):
     elif ( argv[1] == "rm" ):
         print( "rm" )
     else:
-        print( "rkv: command {:s} is unknown".format( argv[1] ) )
+        print( "command {:s} is unknown".format( argv[1] ) )
 
     conn.commit()
     conn.close()
