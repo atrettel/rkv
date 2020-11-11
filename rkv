@@ -187,16 +187,104 @@ def modify_fields( cursor, citation_key, options ):
                             citation_key
                         ) )
             elif ( document_type == "JOUR" and field_type == "journal" ):
-                print( "-> Journal article with journal field" )
+                choose_relation_key(
+                    cursor,
+                    citation_key,
+                    list_documents_with_field_value(
+                        cursor, "title", options[field_type],
+                    ),
+                    "part",
+                )
             elif ( document_type == "RPRT" and field_type == "series" ):
-                print( "-> Report with series field" )
+                choose_relation_key(
+                    cursor,
+                    citation_key,
+                    list_documents_with_field_value(
+                        cursor, "title", options[field_type],
+                    ),
+                    "part",
+                )
             elif ( field_type == "issn" ):
-                print( "-> Non-serial document with issn field" )
+                choose_relation_key(
+                    cursor,
+                    citation_key,
+                    list_documents_with_field_value(
+                        cursor, "issn", options[field_type],
+                    ),
+                    "part",
+                )
             elif ( field_type not in ignored_fields ):
                 print( "ignored unknown field '{:s}'".format( field_type ) )
     else:
         print( "citation key '{:s}' does not exist".format(
             citation_key
+        ) )
+
+def choose_relation_key( cursor, citation_key, other_keys, \
+                                         relation ):
+    if ( not other_keys ):
+        print( "no matches for '{:s}' relation for '{:s}'".format(
+            relation,
+            citation_key,
+        ) )
+    elif ( len(other_keys) == 1 ):
+        set_document_relation(
+            cursor,
+            citation_key,
+            other_keys[0],
+            relation,
+        )
+    else:
+        # Choose among several and then set relationship.
+        print( "  Multiple documents satisfy this search." )
+        for i in range(len(other_keys)):
+            print( "  ({:d}) {:s}".format( i, other_keys[i], ) )
+        print( "  (q) quit (no selection made)" )
+        answer = input( "  ? " )
+        if ( answer == "q" ):
+            return
+        elif ( int(answer) >= 0 and int(answer) < len(other_keys) ):
+            set_document_relation(
+                cursor,
+                citation_key,
+                other_keys[int(answer)],
+                relation,
+            )
+
+def set_document_relation( cursor, citation_key1, citation_key2, relation ):
+    cursor.execute(
+    """
+    SELECT COUNT(*)
+    FROM document_relations
+    WHERE citation_key1=? AND citation_key2=? AND relation=?;
+    """,
+    ( citation_key1, citation_key2, relation, )
+    )
+    count = int(cursor.fetchone()[0])
+
+    if ( count == 0 ):
+        cursor.execute(
+            "INSERT INTO document_relations VALUES( ?, ?, ? );",
+            ( citation_key1, citation_key2, relation, )
+        )
+        print( "insert document relation '{:s}' for '{:s}' and '{:s}'".format(
+            relation,
+            citation_key1,
+            citation_key2,
+        ) )
+    else:
+        cursor.execute(
+        """
+        UPDATE document_relations
+        SET relation=?
+        WHERE citation_key1=? AND citation_key2=?;
+        """,
+        ( relation, citation_key1, citation_key2, )
+        )
+        print( "update document relation '{:s}' for '{:s}' and '{:s}'".format(
+            relation,
+            citation_key1,
+            citation_key2,
         ) )
 
 def list_documents_with_field_value( cursor, field_type, value ):
