@@ -199,6 +199,20 @@ def modify_fields( cursor, citation_key, options ):
             citation_key
         ) )
 
+def list_documents_with_field_value( cursor, field_type, value ):
+    cursor.execute(
+    """
+    SELECT DISTINCT citation_key
+    FROM fields
+    WHERE field_type=? AND value=?
+    """,
+    ( field_type, value, )
+    )
+    citation_keys = []
+    for result in cursor.fetchall():
+        citation_keys.append( str(result[0]) )
+    return citation_keys
+
 def get_document_type( cursor, citation_key ):
     cursor.execute(
     """
@@ -681,7 +695,23 @@ def main( argc, argv ):
         else:
             print_document_types( cursor )
     elif ( argv[1] == "find" ):
-        print( "find" )
+        # TODO: change this to an intersection operation and not a union.
+        options = parse_options( argv[2:] )
+        citation_keys = []
+        field_types = list_field_types( cursor )
+        for field_type in options:
+            if ( field_type in field_types ):
+                results = list_documents_with_field_value(
+                    cursor,
+                    field_type,
+                    options[field_type],
+                )
+                for result in results:
+                    if ( result not in citation_keys ):
+                        citation_keys.append( result )
+
+        for citation_key in citation_keys:
+            print( citation_key )
     elif ( argv[1] == "list" ):
         print( "info" )
     elif ( argv[1] == "mv" ):
