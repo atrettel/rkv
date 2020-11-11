@@ -783,20 +783,26 @@ def main( argc, argv ):
         else:
             print_document_types( cursor )
     elif ( argv[1] == "find" ):
-        # TODO: change this to an intersection operation and not a union.
         options = parse_options( argv[2:] )
-        citation_keys = []
+        key_counts = {}
         field_types = list_field_types( cursor )
         for field_type in options:
             if ( field_type in field_types ):
-                results = list_documents_with_field_value(
+                new_keys = list_documents_with_field_value(
                     cursor,
                     field_type,
                     options[field_type],
                 )
-                for result in results:
-                    if ( result not in citation_keys ):
-                        citation_keys.append( result )
+                for new_key in new_keys:
+                    if ( new_key in key_counts ):
+                        key_counts[new_key] += 1
+                    else:
+                        key_counts[new_key] = 1
+
+        citation_keys = []
+        for citation_key in key_counts:
+            if ( key_counts[citation_key] == len(options) ):
+                citation_keys.append( citation_key )
 
         for citation_key in citation_keys:
             print( citation_key )
