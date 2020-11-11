@@ -182,8 +182,8 @@ def modify_fields( cursor, citation_key, options ):
                             field_type,
                             citation_key
                         ) )
-            else:
-                print( "ignored '{:s}'".format( field_type ) )
+            elif ( field_type not in ignored_fields ):
+                print( "ignored unknown field '{:s}'".format( field_type ) )
     else:
         print( "citation key '{:s}' does not exist".format(
             citation_key
