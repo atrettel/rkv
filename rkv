@@ -205,6 +205,10 @@ def add_document_type( cursor, document_type, name, RIS_type, bibtex_type ):
 # documents, since it would require removing many documents.
 
 def print_document_types( cursor ):
+    cursor.execute( "SELECT MAX(LENGTH(document_type)) FROM document_types;" )
+    result = cursor.fetchone()
+    max_length = int(result[0])
+
     cursor.execute(
     """
     SELECT document_type, type_name
@@ -214,9 +218,10 @@ def print_document_types( cursor ):
     )
     results = cursor.fetchall()
     for result in results:
-        print( "{:15s} - {:s}".format(
+        print( "{:>{width}} - {:s}".format(
             result[0],
             result[1],
+            width=max_length,
         ) )
 
 def add_field_type( cursor, field_type, name, RIS_type, bibtex_type, \
@@ -265,6 +270,10 @@ def remove_field_type( cursor, field_type ):
     print( "deleted field type '{:s}'".format( field_type ) )
 
 def print_field_types( cursor ):
+    cursor.execute( "SELECT MAX(LENGTH(field_type)) FROM field_types;" )
+    result = cursor.fetchone()
+    max_length = int(result[0])
+
     cursor.execute(
     """
     SELECT field_type, type_name
@@ -274,9 +283,10 @@ def print_field_types( cursor ):
     )
     results = cursor.fetchall()
     for result in results:
-        print( "{:15s} - {:s}".format(
+        print( "{:>{width}} - {:s}".format(
             result[0],
             result[1],
+            width=max_length,
         ) )
 
 def citation_key_contains_field_type( cursor, citation_key, field_type, language ):
