@@ -110,16 +110,18 @@ def modify_fields( cursor, citation_key, options ):
     if ( bool(options) == False ):
         print( "no options given" )
 
-    document_type = DEFAULT_DOCUMENT_TYPE
-    if ( "type" in options ):
-        document_type = options["type"]
+    document_type = get_document_type( cursor, citation_key )
 
     language = DEFAULT_LANGUAGE
     if ( "language" in options ):
         language = options["language"]
 
+    serial_types = [ "JFULL", "SER" ]
+
     if ( key_exists( cursor, citation_key ) ):
-        ignored_fields = [ "key", "language", "type", ]
+        ignored_fields = [ "journal", "key", "language", "series", "type", ]
+        if ( document_type not in serial_types ):
+            ignored_fields.append( "issn" )
         field_types = list_field_types( cursor )
         for field_type in options:
             if ( field_type not in ignored_fields and field_type in field_types ):
@@ -127,7 +129,9 @@ def modify_fields( cursor, citation_key, options ):
                 if ( field_type_depends_on_language( cursor, field_type ) ):
                     field_language = language
 
-                if ( citation_key_contains_field_type( cursor, citation_key, field_type, field_language, ) ):
+                if ( citation_key_contains_field_type( cursor, citation_key,
+                                                       field_type,
+                                                       field_language, ) ):
                     if ( options[field_type] != None ):
                         cursor.execute(
                         """
@@ -182,12 +186,29 @@ def modify_fields( cursor, citation_key, options ):
                             field_type,
                             citation_key
                         ) )
+            elif ( document_type == "JOUR" and field_type == "journal" ):
+                print( "-> Journal article with journal field" )
+            elif ( document_type == "RPRT" and field_type == "series" ):
+                print( "-> Report with series field" )
+            elif ( field_type == "issn" ):
+                print( "-> Non-serial document with issn field" )
             elif ( field_type not in ignored_fields ):
                 print( "ignored unknown field '{:s}'".format( field_type ) )
     else:
         print( "citation key '{:s}' does not exist".format(
             citation_key
         ) )
+
+def get_document_type( cursor, citation_key ):
+    cursor.execute(
+    """
+    SELECT document_type
+    FROM documents
+    WHERE citation_key=?;
+    """,
+    ( citation_key, )
+    )
+    return str(cursor.fetchone()[0])
 
 def list_field_types( cursor ):
     cursor.execute( "SELECT field_type FROM field_types ORDER BY field_type;" )
